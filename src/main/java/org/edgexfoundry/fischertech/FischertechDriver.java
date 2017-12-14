@@ -231,8 +231,8 @@ public class FischertechDriver {
 				}
 				
 				if (device != null) {
-					if (device.getOperatingState().equals(OperatingState.disabled))
-						devices.setDeviceByIdOpState(device.getId(), OperatingState.enabled);
+					if (device.getOperatingState().equals(OperatingState.DISABLED))
+						devices.setDeviceByIdOpState(device.getId(), OperatingState.ENABLED);
 					handler.initializeDevice(device);
 				}
 				
