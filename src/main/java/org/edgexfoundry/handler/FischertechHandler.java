@@ -41,6 +41,7 @@ import org.edgexfoundry.exception.controller.ServiceException;
 import org.edgexfoundry.fischertech.DeviceDiscovery;
 import org.edgexfoundry.fischertech.FischertechDriver;
 import org.edgexfoundry.fischertech.ObjectTransform;
+import org.edgexfoundry.controller.AutomationController;
 import org.edgexfoundry.support.logging.client.EdgeXLogger;
 import org.edgexfoundry.support.logging.client.EdgeXLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,6 +125,14 @@ public class FischertechHandler {
 	public Map<String, String> executeCommand(FischertechDevice device, String cmd, String arguments) {
 		// set immediate flag to false to read from object cache of last readings
 		Boolean immediate = true;
+
+		// if it's a RobotState "set" and automation is in progress, bail early.
+		if (cmd.equals("RobotState") &&
+		    arguments != null &&
+		    AutomationController.getInstance().isRunning() ) {
+		    return null; 
+		}
+
 		Transaction transaction = new Transaction();
 		String transactionId = transaction.getTransactionId();
 		transactions.put(transactionId, transaction);
@@ -138,6 +147,13 @@ public class FischertechHandler {
 					return null;
 				}
 			}
+		}
+		
+                // start automation thread here if it's a RobotAutomation "set".
+		if (cmd.equals("RobotAutomation") && arguments != null) {
+		    if (! AutomationController.getInstance().invokeRequestedStateChange()) {
+			return null;
+		    }
 		}
 		
 		List<Reading> readings = transactions.get(transactionId).getReadings();
@@ -250,7 +266,8 @@ public class FischertechHandler {
 	private String parseArguments(String arguments, ResourceOperation operation, Device device, FischertechObject object, Map<String, FischertechObject> objects) {
 		PropertyValue value = object.getProperties().getValue();
 		String val = parseArg(arguments, operation, value, operation.getParameter());
-		
+
+		logger.info("Calling parseArguments() arguments="+arguments+" value="+value+" val="+val);
 		// if the written value is on a multiplexed handle, read the current value and apply the mask first
 		if (!value.mask().equals(BigInteger.ZERO)) {
 			String result = driver.processCommand("get", device.getAddressable(), object.getAttributes(), val);
@@ -265,8 +282,15 @@ public class FischertechHandler {
 				}
 			}
 		}
-		while (val.length() < value.size())
-			val = "0" + val;
+		
+		if ((value.getType().toLowerCase().equals("f") || value.getType().toLowerCase().equals("float")
+		     || value.getType().toLowerCase().equals("i")
+		     || value.getType().toLowerCase().equals("integer"))) {
+		        while (val.length() < value.size()) {
+			        val = "0" + val;
+			}
+		}
+		
 		return val;
 	}
 	

@@ -1,0 +1,288 @@
+# Copyright 2018 Beechwoods Software Inc. All rights reserved.
+name: "Fischertechnik Gripper Robot"
+manufacturer: "Fischertechnik"
+model: "Gripper Robot"
+labels: 
+  - "robot"
+  - "IoT"
+  - "industry4.0"
+description: "Fischertechnick Gripper Robot"
+
+deviceResources:
+      -   
+        name: ArmRotation
+        description: "Robot arm rotation control, + for ccw, - for cw"
+        attributes: 
+            { interfaceName: "M1" }
+        properties: 
+            value:
+                { type: "Integer", readWrite: "RW", size: "1", minimum: "-8", maximum: "8" }
+            units:
+                { type: "String", readWrite: "R", defaultValue: "Power Level" }
+      -   
+        name: MotorControl2
+        description: "Motor 2 control, + for ccw, - for cw"
+        attributes: 
+            { interfaceName: "M2" }
+        properties: 
+            value:
+                { type: "Integer", readWrite: "RW", size: "1", minimum: "-8", maximum: "8" }
+            units:
+                { type: "String", readWrite: "R", defaultValue: "Power Level" }
+      -   
+        name: ArmVertical
+        description: "Robot Arm vertical control, + for up, - for down"
+        attributes: 
+            { interfaceName: "M3" }
+        properties: 
+            value:
+                { type: "Integer", readWrite: "RW", size: "1", minimum: "-8", maximum: "8" }
+            units:
+                { type: "String", readWrite: "R", defaultValue: "Power Level" }
+      -   
+        name: Gripper
+        description: "Robot Gripper control, + for open, - for closed"
+        attributes: 
+            { interfaceName: "M4" }
+        properties: 
+            value:
+                { type: "Integer", readWrite: "RW", size: "1", minimum: "-8", maximum: "8" }
+            units:
+                { type: "String", readWrite: "R", defaultValue: "Power Level" }
+      -   
+        name: RotationalClockwiseLimit
+        description: "1 for clockwise limit reached, 0 for limit not reached"
+        attributes: 
+            { interfaceName: "I1" }
+        properties: 
+            value:
+                { type: "String", readWrite: "R", size: "1", minimum: "0", maximum: "1" }
+            units:
+                { type: "String", readWrite: "R", defaultValue: "Clear" }
+      -   
+        name: DigitalInput2
+        description: "The I2 input"
+        attributes: 
+            { interfaceName: "I2" }
+        properties: 
+            value:
+                { type: "String", readWrite: "R", size: "1", minimum: "0", maximum: "1" }
+            units:
+                { type: "String", readWrite: "R", defaultValue: "Clear" }
+      -   
+        name: VerticalUpperLimit
+        description: "1 for upper limit reached, 0 for limit not reached"
+        attributes: 
+            { interfaceName: "I3" }
+        properties: 
+            value:
+                { type: "String", readWrite: "R", size: "1", minimum: "0", maximum: "1" }
+            units:
+                { type: "String", readWrite: "R", defaultValue: "Clear" } 
+      -   
+        name: GripperOpenLimit
+        description: "1 for opening limit reached, 0 for limit not reached"
+        attributes: 
+            { interfaceName: "I4" }
+        properties: 
+            value:
+                { type: "String", readWrite: "R", size: "1", minimum: "0", maximum: "1" }
+            units:
+                { type: "String", readWrite: "R", defaultValue: "Clear" }
+      -   
+        name: DigitalInput5
+        description: "The I5 input"
+        attributes: 
+            { interfaceName: "I5" }
+        properties: 
+            value:
+                { type: "String", readWrite: "R", size: "1", minimum: "0", maximum: "1" }
+            units:
+                { type: "String", readWrite: "R", defaultValue: "Clear" }
+      -   
+        name: DigitalInput6
+        description: "The I6 input"
+        attributes: 
+            { interfaceName: "I6" }
+        properties: 
+            value:
+                { type: "String", readWrite: "R", size: "1", minimum: "0", maximum: "1" }
+            units:
+                { type: "String", readWrite: "R", defaultValue: "Clear" }
+      -   
+        name: DigitalInput7
+        description: "The I7 input"
+        attributes: 
+            { interfaceName: "I7" }
+        properties: 
+            value:
+                { type: "String", readWrite: "R", size: "1", minimum: "0", maximum: "1" }
+            units:
+                { type: "String", readWrite: "R", defaultValue: "Clear" }
+      -   
+        name: DigitalInput8
+        description: "The I8 input"
+        attributes: 
+            { interfaceName: "I8" }
+        properties: 
+            value:
+                { type: "String", readWrite: "R", size: "1", minimum: "0", maximum: "1" }
+            units:
+                { type: "String", readWrite: "R", defaultValue: "Clear" }
+      -   
+        name: ArmRotationCumulativeCounter
+        description: "Cumulative counter for ArmRotation motor (M1)"
+        attributes: 
+            { interfaceName: "CC1" }
+        properties: 
+            value:
+                { type: "Integer", readWrite: "R", size: "1", minimum: "0"}
+            units:
+                { type: "String", readWrite: "R", defaultValue: "Counts" }
+      -   
+        name: Motor2CumulativeCounter
+        description: "Cumulative counter for Motor2 motor (M2)"
+        attributes: 
+            { interfaceName: "CC2" }
+        properties: 
+            value:
+                { type: "Integer", readWrite: "R", size: "1", minimum: "0"}
+            units:
+                { type: "String", readWrite: "R", defaultValue: "Counts" }
+      -   
+        name: ArmVerticalCumulativeCounter
+        description: "Cumulative counter for ArmVertical motor (M3)"
+        attributes: 
+            { interfaceName: "CC3" }
+        properties: 
+            value:
+                { type: "Integer", readWrite: "R", size: "1", minimum: "0"}
+            units:
+                { type: "String", readWrite: "R", defaultValue: "Counts" }
+      -   
+        name: GripperCumulativeCounter
+        description: "Cumulative counter for Gripper motor (M4)"
+        attributes: 
+            { interfaceName: "CC4" }
+        properties: 
+            value:
+                { type: "Integer", readWrite: "R", size: "1", minimum: "0"}
+            units:
+                { type: "String", readWrite: "R", defaultValue: "Counts" }
+      -   
+        name: AutomationState
+        description: "Current state of robot automation"
+        attributes: 
+            { interfaceName: "AState" }
+        properties: 
+            value:
+                { type: "Integer", readWrite: "RW", size: "1", minimum: "0", maximum: "2", defaultValue: "0" }
+            units:
+                { type: "String", readWrite: "R", defaultValue: "NotRunning/Running/Reset" }
+      -   
+        name: AutomationProcedureName
+        description: "Current automation procedure name"
+        attributes: 
+            { interfaceName: "AName" }
+        properties: 
+            value:
+                { type: "String", readWrite: "RW", defaultValue: "none" }
+            units:
+                { type: "String", readWrite: "R", defaultValue: "none" }
+
+resources:
+  -
+    name: RobotState
+    get:
+      - { index: "1", operation: "get", object: "RotationalClockwiseLimit", parameter: "RotationalClockwiseLimit", property: "value", mappings: {"0": "NotReached", "1": "Reached"} }
+      - { index: "2", operation: "get", object: "DigitalInput2", parameter: "DigitalInput2", property: "value", mappings: {"0": "Off", "1": "On"} }
+      - { index: "3", operation: "get", object: "VerticalUpperLimit", parameter: "VerticalUpperLimit", property: "value", mappings: {"0": "NotReached", "1": "Reached"} }
+      - { index: "4", operation: "get", object: "GripperOpenLimit", parameter: "GripperOpenLimit", property: "value", mappings: {"0": "NotReached", "1": "Reached"} }
+      - { index: "5", operation: "get", object: "DigitalInput5", parameter: "DigitalInput5", property: "value", mappings: {"0": "Off", "1": "On"} }
+      - { index: "6", operation: "get", object: "DigitalInput6", parameter: "DigitalInput6", property: "value", mappings: {"0": "Off", "1": "On"} }	
+      - { index: "7", operation: "get", object: "DigitalInput7", parameter: "DigitalInput7", property: "value", mappings: {"0": "Off", "1": "On"} }
+      - { index: "8", operation: "get", object: "DigitalInput8", parameter: "DigitalInput8", property: "value", mappings: {"0": "Off", "1": "On"} }
+      - { index: "9", operation: "get", object: "ArmRotation", parameter: "ArmRotation", property: "value" }
+      - { index: "10", operation: "get", object: "MotorControl2", parameter: "MotorControl2", property: "value" }	
+      - { index: "11", operation: "get", object: "ArmVertical", parameter: "ArmVertical", property: "value" }
+      - { index: "12", operation: "get", object: "Gripper", parameter: "Gripper", property: "value" }
+      - { index: "13", operation: "get", object: "ArmRotationCumulativeCounter", parameter: "ArmRotationCumulativeCounter", property: "value" }
+      - { index: "14", operation: "get", object: "Motor2CumulativeCounter", parameter: "Motor2CumulativeCounter", property: "value" }
+      - { index: "15", operation: "get", object: "ArmVerticalCumulativeCounter", parameter: "ArmVerticalCumulativeCounter", property: "value" }
+      - { index: "16", operation: "get", object: "GripperCumulativeCounter", parameter: "GripperCumulativeCounter", property: "value" }
+
+    set:
+      - { index: "1", operation: "set", object: "ArmRotation", parameter: "ArmRotation", property: "value" }
+      - { index: "2", operation: "set", object: "MotorControl2", parameter: "MotorControl2", property: "value" }
+      - { index: "3", operation: "set", object: "ArmVertical", parameter: "ArmVertical", property: "value" }
+      - { index: "4", operation: "set", object: "Gripper", parameter: "Gripper", property: "value" }
+
+  -
+    name: RobotAutomation
+    get:
+      - { index: "1", operation: "get", object: "AutomationState", parameter: "AutomationState", property: "value", mappings: {"0": "NotRunning", "1": "Running", "2": "Reset"} }
+      - { index: "2", operation: "get", object: "AutomationProcedureName", parameter: "AutomationProcedureName", property: "value" }
+
+    set:
+      - { index: "1", operation: "set", object: "AutomationState", parameter: "AutomationState", property: "value", mappings: {"NotRunning": "0", "Running": "1", "Reset": "2"} }
+      - { index: "2", operation: "set", object: "AutomationProcedureName", parameter: "AutomationProcedureName", property: "value" }
+
+  -
+    name: Init 
+    set:
+      - { index: "1", operation: "set", object: "ArmRotation", parameter: "0", property: "value" }   
+      - { index: "2", operation: "set", object: "MotorControl2", parameter: "0", property: "value" }   
+      - { index: "3", operation: "set", object: "ArmVertical", parameter: "0", property: "value" }   
+      - { index: "4", operation: "set", object: "Gripper", parameter: "0", property: "value" }   
+                   
+commands: 
+  - 
+    name: RobotState
+    get: 
+        path: "/api/v1/device/{deviceId}/RobotState"
+        responses: 
+          - 
+            code: "200"
+            description: "Get the system state."
+            expectedValues: ["RotationalClockwiseLimit","DigitalInput2","VerticalUpperLimit","GripperOpenLimit","DigitalInput5","DigitalInput6","DigitalInput7","DigitalInput8","ArmRotation","MotorControl2","ArmVertical","Gripper","ArmRotationCumulativeCounter","Motor2CumulativeCounter","ArmVerticalCumulativeCounter","GripperCumulativeCounter"]	    
+          -
+            code: "503"
+            description: "service unavailable"
+            expectedValues: []
+    put:
+        path: "/api/v1/device/{deviceId}/RobotState"
+        parameterNames: ["ArmRotation","MotorControl2","ArmVertical","Gripper"]
+        responses:
+          - 
+            code: "204"
+            description: "Set the motor states."
+            expectedValues: []
+          -
+            code: "503"
+            description: "service unavailable"
+            expectedValues: []
+  - 
+    name: RobotAutomation
+    get: 
+        path: "/api/v1/device/{deviceId}/RobotAutomation"
+        responses: 
+          - 
+            code: "200"
+            description: "Get information about the current automation state."
+            expectedValues: ["AutomationProcedureName", "AutomationState"]	    
+          -
+            code: "503"
+            description: "service unavailable"
+            expectedValues: []
+    put:
+        path: "/api/v1/device/{deviceId}/RobotAutomation"
+        parameterNames: ["AutomationProcedureName", "AutomationState"]
+        responses:
+          - 
+            code: "204"
+            description: "Set the current procedure name and state."
+            expectedValues: []
+          -
+            code: "503"
+            description: "service unavailable"
+            expectedValues: []

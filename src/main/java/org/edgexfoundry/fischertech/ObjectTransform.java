@@ -46,9 +46,24 @@ public class ObjectTransform {
 		return String.format("%0" + value.size() + "X", maskedVal);
 	}
 
+        private boolean nonNumeric(PropertyValue value) {
+	    if ((value.getType().toLowerCase().equals("f") || value.getType().toLowerCase().equals("float")
+		 || value.getType().toLowerCase().equals("i")
+		 || value.getType().toLowerCase().equals("integer"))) {
+		return false;
+	    } else {
+		return true;
+	    }
+	}
+
 	public String transform(PropertyValue value, String result) {
 		double floatValue;
 		
+		// Do not perform transforms on non-numeric fields
+		if (nonNumeric(value)) {
+		    return result;
+		}
+
 		if (value.getLSB() != null) {
 			BigInteger val = parse(value, result);
 			

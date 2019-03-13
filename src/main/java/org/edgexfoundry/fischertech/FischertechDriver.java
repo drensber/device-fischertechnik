@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Calendar;
 
 import javax.annotation.PreDestroy;
 
@@ -42,8 +43,10 @@ import org.edgexfoundry.fishX1.FishX1Packet;
 import org.edgexfoundry.fishX1.TA_INPUT;
 import org.edgexfoundry.fishX1.TA_OUTPUT;
 import org.edgexfoundry.handler.FischertechHandler;
+import org.edgexfoundry.controller.AutomationController;
 import org.edgexfoundry.support.logging.client.EdgeXLogger;
 import org.edgexfoundry.support.logging.client.EdgeXLoggerFactory;
+import org.edgexfoundry.exception.controller.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -78,7 +81,8 @@ public class FischertechDriver {
 	private int serialStopBits = 1;
 	private int serialParity   = 0;
 	
-	Boolean safety = true;
+	//Boolean safety = true;
+	Boolean safety = false;
 	
 	Boolean connected = false;
 	
@@ -86,13 +90,19 @@ public class FischertechDriver {
 	
 	private TA_INPUT ta_input;
 	
+        private int old_cnt_reset[] = new int[4];
+        // For tracking sequence numbers and time between packets.
+        private int previous_tid = 0;
+        Calendar cal = Calendar.getInstance();
+        private long previous_timestamp=0;
+    
 	private FischertechDevice device;
-	
 	public ScanList discover() {
 		ScanList scan = new ScanList();
 		Map<String, String> newDevice = new HashMap<String, String>();
 		newDevice.put("name", "Fischertechnik");
-		newDevice.put("address", "Punching Machine");
+		//newDevice.put("address", "Punching Machine");
+		newDevice.put("address", "Gripper Robot");
 		
 		if (!connected) {
 			initialize();
@@ -108,14 +118,18 @@ public class FischertechDriver {
 	// Fischertech Object to be written to
 	// value is string to be written or null
 	public void process(ResourceOperation operation, FischertechDevice device, FischertechObject object, String value, String transactionId, String opId) {
+	    logger.debug("Calling process(ResourceOperation operation=\""+operation+"\", FischertechDevice device=<TLDR>, FischertechObject object=\""+object+"\", String value=\""+value+"\", String transactionId=\""+transactionId+"\", String opId=\""+opId+"\")");
 		String result = "";
 		
 		result = processCommand(operation.getOperation(), device.getAddressable(), object.getAttributes(), value);
+		logger.debug("Called: processCommand(" + operation.getOperation() + ", " + device.getAddressable() + ", " + object.getAttributes() + ", " + value + ")");
+		logger.debug("  returned: " + result);
 		if (this.device == null) {
 			this.device = device;
 		}
 		
 		objectCache.put(device, operation, result);
+		logger.debug(" Calling: handler.completeTransaction(" + transactionId + ", " + opId + ", " + objectCache.getResponses(device, operation) + ")");
 		handler.completeTransaction(transactionId, opId, objectCache.getResponses(device, operation));
 	}
 
@@ -131,14 +145,25 @@ public class FischertechDriver {
 		String intface = addressable.getAddress();
 		logger.debug("ProcessCommand: " + operation + ", interface: " + intface + ", address: " + address + ", attributes: " + attributes.getInterfaceName() + ", value: " + value );
 		String result = "";
+
+		logger.debug("ta_input = " + ta_input);
 		
 		if (operation.equals("set")) {
-			if (attributes.getInterfaceName().startsWith("M")) {
-				int motorNum = Integer.parseInt(attributes.getInterfaceName().substring(1));
-				synchronized(ta_output) {
-					ta_output.setDuty(motorNum, Integer.parseInt(value));
-					result = value;
-				}
+		        if (attributes.getInterfaceName().equals("AState")) {
+			    AutomationController.getInstance().setRequestedState(Integer.parseInt(value));			    
+			    result = value;
+			}
+			else if (attributes.getInterfaceName().equals("AName")) {
+			    AutomationController.getInstance().setAutomationProcedureName(value);
+			    result = value;
+			}
+			else if (attributes.getInterfaceName().startsWith("M")) {
+			    int motorNum = Integer.parseInt(attributes.getInterfaceName().substring(1));
+			    synchronized(ta_output) {
+				logger.debug("Calling ta_output.setDuty(" + motorNum + ", " + Integer.parseInt(value) + ")");
+				ta_output.setDuty(motorNum, Integer.parseInt(value));
+				result = value;
+			    }
 			} else if (attributes.getInterfaceName().equals("S1")) {
 				safety = (Integer.parseInt(value) == 1) ? true : false;
 				result = safety ? "1" : "0";
@@ -146,16 +171,29 @@ public class FischertechDriver {
 				throw new NotFoundException("Fischertech interface", attributes.getInterfaceName());
 			}
 		} else {
-			int ioNum = Integer.parseInt(attributes.getInterfaceName().substring(1));
-			if (attributes.getInterfaceName().startsWith("M")) {
+		        if (attributes.getInterfaceName().equals("AState")) {
+			    result = (AutomationController.getInstance().isRunning() ? "1" : "0");
+			}
+			else if (attributes.getInterfaceName().equals("AName")) {
+			    result = AutomationController.getInstance().getAutomationProcedureName();
+			}
+		        if (attributes.getInterfaceName().startsWith("CC")) {
+			        int ioNum = Integer.parseInt(attributes.getInterfaceName().substring(2));
+				synchronized(ta_input) {
+				        result = String.valueOf(TA_INPUT.getCumulativeCounter(ioNum));
+				}
+			}
+			else if (attributes.getInterfaceName().startsWith("M")) {
+				int ioNum = Integer.parseInt(attributes.getInterfaceName().substring(1));
 				synchronized(ta_output) {
 					result = String.valueOf(ta_output.getDuty(ioNum));
 				}
 			} else if (attributes.getInterfaceName().startsWith("I")) {
+			        int ioNum = Integer.parseInt(attributes.getInterfaceName().substring(1));
 				synchronized(ta_input) {
 					result = String.valueOf(ta_input.getUni(ioNum));
 				}
-			}
+			} 
 		}
 		
 		return result;
@@ -174,6 +212,7 @@ public class FischertechDriver {
 		} catch (Exception e) {
 			return;
 		}
+		logger.debug("ta_input = " + ta_input);
 	}
 	
 	public void disconnectDevice(Addressable address) {
@@ -194,6 +233,7 @@ public class FischertechDriver {
 			synchronized(initializer) {
 				if (connected) 
 					return;
+				logger.debug("Looking for Fischertechnic devices");
 				SerialPort ports[] = SerialPort.getCommPorts();
 				String address = "fischertechnik";
 				String address2 = "ROBO TX Controller";
@@ -212,14 +252,19 @@ public class FischertechDriver {
 					return;
 				}
 				
+				logger.debug("Device found: " + client.getSystemPortName());
 				client.setComPortParameters(serialBaudRate, serialDataBits, serialStopBits, serialParity);
-				client.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 100, 100);
+				client.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 100, 0);
 				client.openPort();
 				logger.info("Port is " + (client.isOpen() ? "open" : "closed") + " for: " + client.getDescriptivePortName());
 				
+				logger.debug("Setting up Transfer Area output");
 				ta_output = new TA_OUTPUT();
+				logger.debug("ta_output = \"" + ta_output + "\"");
+				logger.debug("Setting up Transfer Area input");
 				ta_input = new TA_INPUT();
-				
+				logger.debug("ta_input = \"" + ta_input + "\"");
+
 				connected = true;
 								
 				final List<Integer> order = configure();
@@ -260,11 +305,14 @@ public class FischertechDriver {
 	protected void connection(List<Integer> order) {
 		FishX1Packet packet = new FishX1Packet(2, order.get(0), order.get(1));
 		ta_output = packet.getOutput();
+		AutomationController.getInstance().setTaOutput(ta_output);		
 		while (connected) {
 			packet.update(order.get(0), order.get(1));
 			try {
 				order = writeToDevice(packet);
 			} catch (Exception e) {
+			    logger.error("FischertechDriver.connection() caught exception e=" + e);
+			    e.printStackTrace();
 				disconnectDevice(null);
 			}
 			synchronized(ta_output) {
@@ -298,35 +346,112 @@ public class FischertechDriver {
 		
 		Integer readbytes = 0;
 		byte[] frame = packet.getFrame();
-		client.writeBytes(frame, frame.length/2);
-		readbytes = client.readBytes(buffer, buffer.length);
+
+		if (frame[16] == 5) {
+		    logger.debug("Sending packet=\"" + packet + "\"");
+		}
+		for (int i=0; i < 100; i++) {
+		    int write_rv = client.writeBytes(frame, frame.length);
+		    if (write_rv != 75) {
+			logger.debug("write_rv = " + write_rv);
+		    }
+
+		    if (write_rv < 0) {
+			logger.error("writeBytes returned " + write_rv + ". Retrying in 10ms");
+			continue;
+		    }
+
+		    readbytes = client.readBytes(buffer, buffer.length);
+		    if (readbytes > 0) {
+			if (readbytes != 79) {
+			    logger.debug("readbytes=" + readbytes);
+			}
+			break;
+		    }
+		    if (i > 5) {
+		    	logger.error("readBytes returned " + readbytes + ". Retrying in 10ms");
+		    }
+		}
+
+		// Check for missing FT serial protocol packets
+		if (packet.tid_int != ++previous_tid) {
+		    logger.error("Wrong packet.tid_int. (expected " + previous_tid +", but got "+ packet.tid_int + ").  Resetting.");
+		    previous_tid=packet.tid_int;
+		}
+		if (previous_tid>65535) { // roll over after 2^16
+		    previous_tid=0;
+		}
+		
+		// Make sure we meet our soft-realtime expectations.
+		long now_timestamp = cal.getTimeInMillis();
+		if (previous_timestamp != 0) {
+		    if ((now_timestamp - previous_timestamp) > 1) {
+			logger.error("Difference between now_timestamp("+now_timestamp+") and previous_timestamp("+previous_timestamp+") exceeds 1 millisecond.");
+		    }
+		}
+		else {
+		    logger.debug("previous_timestamp was not set, so setting it to " + now_timestamp);
+		}
+		previous_timestamp=now_timestamp;
+	       
 		String output = "";
 		for (byte b: buffer) 
 			output += String.format("%02X", b);
 		
-		if (readbytes <= 0 || output.length() < readbytes*2) {
+		if (readbytes <= 0 || output.length() < readbytes*2) {		        
 			logger.error("Could not read from device " + client.getDescriptivePortName());
+			logger.error("readbytes = " + readbytes + ",  output.length()="+output.length());
 			disconnectDevice(null);
 			return tid;
 		}
 		
 		output = output.substring(0, readbytes*2);
 			
+		if (frame[16] == 5) {  // 5 is TA_CONFIG
+		    logger.debug("output=\"" + output + "\"");
+		}
+		
 		tid.add(Integer.parseInt(output.substring(24,26), 16) + Integer.parseInt(output.substring(26,28), 16) * 256 + 1);
 		tid.add(Integer.parseInt(output.substring(28,30), 16) + Integer.parseInt(output.substring(30,32), 16) * 256);
 		
-		if (output.substring(16*2,16*2+2).equals("66")) {
+		if (output.substring(16*2,16*2+2).equals("66")) {		    
 			String target = output.substring(7*4*2, output.length()-6);
+			TA_INPUT old = ta_input;
 			synchronized(ta_input) {
-				TA_INPUT old = ta_input;
 				ta_input = new TA_INPUT(target);
-				for (int i = 1; i <= ta_input.uni.size(); i++)
-					if (old.getUni(i) != ta_input.getUni(i))
-						receive("I" + i, String.valueOf(ta_input.getUni(i)));
-				if (String.format("%04X", ta_input.uni.get(0)).equals("983A")) {
+				AutomationController.getInstance().setTaInput(ta_input);
+				for (int i = 0; i < ta_input.uni.length; i++) {
+				    if (old.uni[i] != ta_input.uni[i]) {
+					receive("I" + (i + 1), String.valueOf(ta_input.uni[i]));
+				    }
+				}
+
+				for (int i = 0; i < ta_input.cnt_in.length; i++) {
+					int counter_difference = ta_input.counter.get(i) - old.counter.get(i);
+					if (counter_difference != 0) {
+					    if ( counter_difference > 0 ) {
+						TA_INPUT.cumulative_counter[i] += ( counter_difference );
+					    }
+					    else {
+						// This is totally hokey, but checking for counter_difference > -10000 is the best
+						// way I can find to detect a counter reset situation (as opposed to rollover situation)
+						if (counter_difference > -10000) {
+						    TA_INPUT.cumulative_counter[i] += ta_input.counter.get(i);
+						}
+						else {
+						    logger.error("counter_difference is "+counter_difference);
+						    TA_INPUT.cumulative_counter[i] += ( counter_difference + 65536 );
+						}
+					    }
+					}
+				
+				}
+
+				if (String.format("%04X", ta_input.uni[0]).equals("983A")) {
 					tid = configure(); // attempt to recover connection
-					if (tid.size() == 0)
+					if (tid.size() == 0) {
 						disconnectDevice(null);
+					}
 				}
 			}
 		}

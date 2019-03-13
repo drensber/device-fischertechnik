@@ -20,10 +20,13 @@
 package org.edgexfoundry.fishX1;
 
 import org.springframework.stereotype.Component;
+import org.edgexfoundry.support.logging.client.EdgeXLogger;
+import org.edgexfoundry.support.logging.client.EdgeXLoggerFactory;
 
 @Component
 public class FishX1Packet {
 	
+        private final static EdgeXLogger logger = EdgeXLoggerFactory.getEdgeXLogger(FishX1Packet.class);
 	private String header = "0255";
 	private String from = littleEndian(2,4);
 	private String to = littleEndian(1,4);
@@ -33,6 +36,9 @@ public class FishX1Packet {
 	private int numStructures = 0;
 	private String TAID = "";
 	private String footer = "03";
+	
+	// For detecting missing packets in the sequence
+    	public int tid_int;
 	
 	private String messagePayload = "";
 	private TA_OUTPUT output;
@@ -55,6 +61,7 @@ public class FishX1Packet {
 			sid = 0;
 		}
 		TID = littleEndian(tid, 2);
+		tid_int=tid;
 		SID = littleEndian(sid, 2);
 		command = littleEndian(type,4);
 		if (type == 2) {
@@ -73,11 +80,16 @@ public class FishX1Packet {
 	
 	public FishX1Packet(int tid, int sid) {
 		TID = littleEndian(tid, 2);
+		tid_int=tid;
 		SID = littleEndian(sid, 2);
 	}
 	
+	public String getTID() {
+		return TID;
+	}
 	public void update(int tid, int sid) {
 		TID = littleEndian(tid, 2);
+		tid_int=tid;
 		SID = littleEndian(sid, 2);
 	}
 	
