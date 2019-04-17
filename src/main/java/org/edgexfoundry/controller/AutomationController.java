@@ -55,7 +55,7 @@ public class AutomationController {
     }
 
     public void setTaOutput(TA_OUTPUT out) {
-	ta_output=out;	
+	ta_output=out;
     }
     
     public synchronized boolean setAutomationProcedureName(String procedure) {
@@ -176,9 +176,11 @@ public class AutomationController {
 
     private void stopAllMotors() {
 	logger.debug("Entering stopAllMotors()");
-	ta_output.setDuty(ArmRotationMotor, 0);
-	ta_output.setDuty(ArmVerticalMotor, 0);
-	ta_output.setDuty(GripperMotor, 0);
+	synchronized(ta_output) {
+	    ta_output.setDuty(ArmRotationMotor, 0);
+	    ta_output.setDuty(ArmVerticalMotor, 0);
+	    ta_output.setDuty(GripperMotor, 0);
+	}
 	logger.debug("Leaving stopAllMotors()");
     }
 
@@ -210,45 +212,58 @@ public class AutomationController {
 	    logger.debug("Doing Move Arm vertical motor back to top");
 	    if ( ta_input.getUni(ArmVerticalMotor) != InputPressed ) {
 		logger.debug("ta_output.setDuty(ArmVerticalMotor, ArmVerticalUp)");
-		ta_output.setDuty(ArmVerticalMotor, ArmVerticalUp);
-		ta_output.setDistance(ArmVerticalMotor, 0);
+		synchronized(ta_output) {
+		    ta_output.setDuty(ArmVerticalMotor, ArmVerticalUp);
+		    ta_output.setDistance(ArmVerticalMotor, 0);
+		}
 		while ( ta_input.getUni(ArmVerticalMotor) != InputPressed ) {
 		    Thread.sleep(5);
 		}
 		// Add a sleep here to make it "press a little harder
-		Thread.sleep(20);
+		Thread.sleep(5);
 		logger.debug("ta_output.setDuty(ArmVerticalMotor, 0)");
-		ta_output.setDuty(ArmVerticalMotor, 0);
+		synchronized(ta_output) {
+		    ta_output.setDuty(ArmVerticalMotor, 0);
+		}
 	    }
 	    
 	    // Move Arm rotation motor CCW back to home
 	    logger.debug("Doing Move Arm rotation motor CCW back to home");
 	    if ( ta_input.getUni(ArmRotationMotor) != InputPressed ) {
 		logger.debug("ta_output.setDuty(ArmRotationMotor, ArmRotationCW)");
-		ta_output.setDuty(ArmRotationMotor, ArmRotationCW);
-		ta_output.setDistance(ArmRotationMotor, 0);
+		synchronized(ta_output) {
+		    ta_output.setDuty(ArmRotationMotor, ArmRotationCW);
+		    ta_output.setDistance(ArmRotationMotor, 0);
+		}
 		while ( ta_input.getUni(ArmRotationMotor) != InputPressed ) {
 		    Thread.sleep(5);
 		}
 		// Add a sleep here to make it "press a little harder
-		Thread.sleep(20);
+		Thread.sleep(5);
+
 		logger.debug("ta_output.setDuty(ArmRotationMotor, 0)");
-		ta_output.setDuty(ArmRotationMotor, 0);
+		synchronized(ta_output) {
+		    ta_output.setDuty(ArmRotationMotor, 0);
+		}
 	    }
 	    	    
 	    // Move gripper motor back to open
 	    logger.debug("Doing Move gripper motor back to open");
 	    if ( ta_input.getUni(GripperMotor) != InputPressed ) {
 		logger.debug("ta_output.setDuty(GripperMotor, GripperMotorOpen)");
-		ta_output.setDuty(GripperMotor, GripperMotorOpen);
-		ta_output.setDistance(GripperMotor, 0);
+		synchronized(ta_output) {
+		    ta_output.setDuty(GripperMotor, GripperMotorOpen);
+		    ta_output.setDistance(GripperMotor, 0);
+		}
 		while ( ta_input.getUni(GripperMotor) != InputPressed ) {
 		    Thread.sleep(5);
 		}
 		// Add a sleep here to make it "press a little harder
-		Thread.sleep(20);
+		Thread.sleep(5);
 		logger.debug("ta_output.setDuty(GripperMotor, 0)");
-		ta_output.setDuty(GripperMotor, 0);
+		synchronized(ta_output) {
+		    ta_output.setDuty(GripperMotor, 0);
+		}
 	    }
 	}
 	catch (InterruptedException interrupt) {
@@ -260,15 +275,19 @@ public class AutomationController {
     }
 
     private void moveMotorAsynchronous(int motor, int direction, int distance) {
+	synchronized(ta_output) {
 	    ta_output.setDistance(motor, distance);
 	    ta_output.setDuty(motor, direction);
+	}
     }
     
     private void moveMotorSynchronous(int motor, int direction, int distance) throws InterruptedException {
 	try {
 	    logger.debug("Calling moveMotorSynchronous(motor="+motor+", direction="+direction+", distance="+distance+") counter="+ta_input.getCounter(motor));
-	    
-	    ta_output.resetCounter(motor);
+
+	    synchronized(ta_output) {
+		ta_output.resetCounter(motor);
+	    }
 
 	    Thread.sleep(100); // Takes a small amount of time for reset to take effect
 	    

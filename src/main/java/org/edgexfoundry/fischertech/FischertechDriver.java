@@ -76,7 +76,7 @@ public class FischertechDriver {
 	
 	private SerialPort client = null;
 
-	private int serialBaudRate = 38400;
+	private int serialBaudRate = 115200;
 	private int serialDataBits = 8;
 	private int serialStopBits = 1;
 	private int serialParity   = 0;
@@ -254,7 +254,8 @@ public class FischertechDriver {
 				
 				logger.debug("Device found: " + client.getSystemPortName());
 				client.setComPortParameters(serialBaudRate, serialDataBits, serialStopBits, serialParity);
-				client.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 100, 0);
+				client.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 1000, 0);
+				logger.info("Setting Parameters serialBaudRate="+serialBaudRate+", serialDataBits="+serialDataBits+", serialStopBits="+serialStopBits+", serialParity="+serialParity);
 				client.openPort();
 				logger.info("Port is " + (client.isOpen() ? "open" : "closed") + " for: " + client.getDescriptivePortName());
 				
