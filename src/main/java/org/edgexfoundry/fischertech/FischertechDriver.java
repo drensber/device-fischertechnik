@@ -91,9 +91,13 @@ public class FischertechDriver {
 	private TA_INPUT ta_input;
 	
         private int old_cnt_reset[] = new int[4];
-        // For tracking sequence numbers and time between packets.
+        private long previous_cc_event_value[] = new long[4];
+        private long previous_cc_event_timestamp[] = new long[4];
+        private final long cc_event_threshold_ms = 100;
+
+        // For tracking sequence numbers and time between packets.   
         private int previous_tid = 0;
-        Calendar cal = Calendar.getInstance();
+        private Calendar cal = Calendar.getInstance();
         private long previous_timestamp=0;
     
 	private FischertechDevice device;
@@ -337,6 +341,13 @@ public class FischertechDriver {
 				}
 				packet.setOutput(ta_output);
 			}
+			// 50 packets/second should be enough granularity
+			try {
+			    Thread.sleep(20);
+			}catch(InterruptedException e) {
+			    //IGNORED
+			    e.printStackTrace();
+			}
 		}
 	}
 
@@ -422,6 +433,7 @@ public class FischertechDriver {
 				ta_input = new TA_INPUT(target);
 				AutomationController.getInstance().setTaInput(ta_input);
 				for (int i = 0; i < ta_input.uni.length; i++) {
+				    //Send update events if the input switch has changed
 				    if (old.uni[i] != ta_input.uni[i]) {
 					receive("I" + (i + 1), String.valueOf(ta_input.uni[i]));
 				    }
@@ -442,6 +454,15 @@ public class FischertechDriver {
 						else {
 						    logger.error("counter_difference is "+counter_difference);
 						    TA_INPUT.cumulative_counter[i] += ( counter_difference + 65536 );
+						}
+					    }
+					
+					    if (TA_INPUT.cumulative_counter[i] > previous_cc_event_value[i]) {
+						long current_time = System.currentTimeMillis();
+						if ((current_time - previous_cc_event_timestamp[i]) > cc_event_threshold_ms) {
+						    previous_cc_event_timestamp[i] = current_time;
+						    previous_cc_event_value[i] = TA_INPUT.cumulative_counter[i];
+						    receive("CC" + (i + 1), String.valueOf(TA_INPUT.cumulative_counter[i]));
 						}
 					    }
 					}
