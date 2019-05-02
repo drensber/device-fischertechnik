@@ -154,12 +154,21 @@ public class FischertechDriver {
 		
 		if (operation.equals("set")) {
 		        if (attributes.getInterfaceName().equals("AState")) {
-			    AutomationController.getInstance().setRequestedState(Integer.parseInt(value));			    
-			    result = value;
+			    if (AutomationController.getInstance().setRequestedState(Integer.parseInt(value))) {
+				result = value;
+				receive("AState", String.valueOf(value));
+			    }
+			    else {
+				result = (AutomationController.getInstance().isRunning() ? "1" : "0");
+			    }
 			}
 			else if (attributes.getInterfaceName().equals("AName")) {
-			    AutomationController.getInstance().setAutomationProcedureName(value);
-			    result = value;
+			    if (AutomationController.getInstance().setAutomationProcedureName(value)) {
+				result = value;
+			    }
+			    else {
+				result = AutomationController.getInstance().getAutomationProcedureName();
+			    }
 			}
 			else if (attributes.getInterfaceName().startsWith("M")) {
 			    int motorNum = Integer.parseInt(attributes.getInterfaceName().substring(1));
