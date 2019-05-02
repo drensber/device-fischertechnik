@@ -28,7 +28,6 @@ public class AutomationController {
 
     public final static int NotRunning = 0;
     public final static int Running = 1;
-    public final static int Reset = 2;
 
     private final static EdgeXLogger logger = EdgeXLoggerFactory.getEdgeXLogger(AutomationController.class);
     
@@ -117,13 +116,6 @@ public class AutomationController {
 		    logger.error("Called invokeRequestedStateChange(Running) when automation was already running.");
 		    rv=false;
 		}
-		break;
-	    case Reset:
-		if (isRunning()) {
-		    stop();
-		}
-		(runningThread = new Thread(() -> this.doRobotAutomation("reset"))).start();
-		rv=true;
 		break;
 	    default:
 		logger.error(requestedState+" is an invalid argument for invokeRequestedStateChange()");
