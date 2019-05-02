@@ -156,7 +156,7 @@ public class FischertechDriver {
 		        if (attributes.getInterfaceName().equals("AState")) {
 			    if (AutomationController.getInstance().setRequestedState(Integer.parseInt(value))) {
 				result = value;
-				receive("AState", String.valueOf(value));
+				receive("AState", (value=="1" ? "Running" : "NotRunning"));
 			    }
 			    else {
 				result = (AutomationController.getInstance().isRunning() ? "1" : "0");
