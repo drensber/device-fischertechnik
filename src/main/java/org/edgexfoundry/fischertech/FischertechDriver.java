@@ -322,34 +322,7 @@ public class FischertechDriver {
 		AutomationController.getInstance().setTaOutput(ta_output);		
 		while (connected) {
 			packet.update(order.get(0), order.get(1));
-			try {
-				order = writeToDevice(packet);
-			} catch (Exception e) {
-			    logger.error("FischertechDriver.connection() caught exception e=" + e);
-			    e.printStackTrace();
-				disconnectDevice(null);
-			}
-			synchronized(ta_output) {
-				if (safety) {
-					if (ta_input.getUni(7) > 0) {
-						if (ta_output.getDuty(1) < 0)
-							ta_output.setDuty(1, 0);//8);
-					}
-					if (ta_input.getUni(8) > 0) {
-						if (ta_output.getDuty(1) > 0)
-							ta_output.setDuty(1, 0);//-8);
-					}
-					if (ta_input.getUni(5) == 0) {
-						if (ta_output.getDuty(2) < 0)
-							ta_output.setDuty(2, 0);//127);
-					}	
-					if (ta_input.getUni(6) == 0) {
-						if (ta_output.getDuty(2) > 0)
-							ta_output.setDuty(2, 0);//-127);
-					}
-				}
-				packet.setOutput(ta_output);
-			}
+
 			// 50 packets/second should be enough granularity
 			try {
 			    Thread.sleep(20);
@@ -357,6 +330,35 @@ public class FischertechDriver {
 			    //IGNORED
 			    e.printStackTrace();
 			}
+
+			try {
+			    order = writeToDevice(packet);
+			} catch (Exception e) {
+			    logger.error("FischertechDriver.connection() caught exception e=" + e);
+			    e.printStackTrace();
+				disconnectDevice(null);
+			}
+
+			if (safety) {
+			    if (ta_input.getUni(7) > 0) {
+				if (ta_output.getDuty(1) < 0)
+				    ta_output.setDuty(1, 0);//8);
+			    }
+			    if (ta_input.getUni(8) > 0) {
+				if (ta_output.getDuty(1) > 0)
+				    ta_output.setDuty(1, 0);//-8);
+			    }
+			    if (ta_input.getUni(5) == 0) {
+				if (ta_output.getDuty(2) < 0)
+				    ta_output.setDuty(2, 0);//127);
+			    }	
+			    if (ta_input.getUni(6) == 0) {
+				if (ta_output.getDuty(2) > 0)
+				    ta_output.setDuty(2, 0);//-127);
+			    }
+			}
+
+			packet.setOutput(ta_output);
 		}
 	}
 
@@ -394,17 +396,17 @@ public class FischertechDriver {
 		    }
 		}
 
-		// Check for missing FT serial protocol packets
-		if (packet.tid_int != ++previous_tid) {
-		    logger.error("Wrong packet.tid_int. (expected " + previous_tid +", but got "+ packet.tid_int + ").  Resetting.");
-		    previous_tid=packet.tid_int;
-		}
-		if (previous_tid>65535) { // roll over after 2^16
-		    previous_tid=0;
-		}
+		// Check for missing FT serial protocol packets 
+		//if (packet.tid_int != ++previous_tid) {
+		//    logger.error("Wrong packet.tid_int. (expected " + previous_tid +", but got "+ packet.tid_int + ").  Resetting.");
+		//    previous_tid=packet.tid_int;
+		//}
+		//if (previous_tid>65535) { // roll over after 2^16
+		//    previous_tid=0;
+		//} 
 		
 		// Make sure we meet our soft-realtime expectations.
-		long now_timestamp = cal.getTimeInMillis();
+		/* long now_timestamp = System.currentTimeMillis();
 		if (previous_timestamp != 0) {
 		    if ((now_timestamp - previous_timestamp) > 1) {
 			logger.error("Difference between now_timestamp("+now_timestamp+") and previous_timestamp("+previous_timestamp+") exceeds 1 millisecond.");
@@ -413,7 +415,7 @@ public class FischertechDriver {
 		else {
 		    logger.debug("previous_timestamp was not set, so setting it to " + now_timestamp);
 		}
-		previous_timestamp=now_timestamp;
+		previous_timestamp=now_timestamp; */
 	       
 		String output = "";
 		for (byte b: buffer) 
@@ -438,8 +440,8 @@ public class FischertechDriver {
 		if (output.substring(16*2,16*2+2).equals("66")) {		    
 			String target = output.substring(7*4*2, output.length()-6);
 			TA_INPUT old = ta_input;
+			ta_input = new TA_INPUT(target);
 			synchronized(ta_input) {
-				ta_input = new TA_INPUT(target);
 				AutomationController.getInstance().setTaInput(ta_input);
 				for (int i = 0; i < ta_input.uni.length; i++) {
 				    //Send update events if the input switch has changed

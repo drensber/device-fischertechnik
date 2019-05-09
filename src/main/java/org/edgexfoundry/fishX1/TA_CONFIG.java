@@ -44,7 +44,7 @@ public class TA_CONFIG {
 	}
 	
 	@Override
-	public String toString() {
+	public synchronized String toString() {
 		String out = String.format("%02X", pgm_state_req);
 		for(int i = 0; i < reserved_1.size(); i++)
 			out += String.format("%02X", reserved_1.get(i));

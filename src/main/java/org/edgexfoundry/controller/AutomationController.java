@@ -168,16 +168,16 @@ public class AutomationController {
 
     private void stopAllMotors() {
 	logger.debug("Entering stopAllMotors()");
-	synchronized(ta_output) {
-	    ta_output.setDuty(ArmRotationMotor, 0);
-	    ta_output.setDuty(ArmVerticalMotor, 0);
-	    ta_output.setDuty(GripperMotor, 0);
-	}
+	
+	ta_output.setDuty(ArmRotationMotor, 0);
+	ta_output.setDuty(ArmVerticalMotor, 0);
+	ta_output.setDuty(GripperMotor, 0);
+
 	logger.debug("Leaving stopAllMotors()");
     }
 
     private void doRobotAutomation(String name) {
-	logger.debug("Entering doRobotAutomation(name="+name+")");
+	logger.error("Entering doRobotAutomation(name="+name+")");
 	try {
 	    if (name.equals("pickBoxUpAndMoveLeft")) {
 		pickBoxUpAndMoveLeftProcedure();
@@ -197,65 +197,48 @@ public class AutomationController {
     }
     
     private void resetProcedure() throws InterruptedException {
-	logger.debug("Entering resetProcedure()");
+	logger.error("Entering resetProcedure()");
 	
 	try {
 	    // Move Arm vertical motor back to top
-	    logger.debug("Doing Move Arm vertical motor back to top");
 	    if ( ta_input.getUni(ArmVerticalMotor) != InputPressed ) {
-		logger.debug("ta_output.setDuty(ArmVerticalMotor, ArmVerticalUp)");
-		synchronized(ta_output) {
-		    ta_output.setDuty(ArmVerticalMotor, ArmVerticalUp);
-		    ta_output.setDistance(ArmVerticalMotor, 0);
-		}
+		logger.error("ta_output.setDuty(ArmVerticalMotor, ArmVerticalUp)");
+		ta_output.setDistance(ArmVerticalMotor, 16383);
+		ta_output.setDuty(ArmVerticalMotor, ArmVerticalUp);
+
 		while ( ta_input.getUni(ArmVerticalMotor) != InputPressed ) {
-		    Thread.sleep(5);
+		    Thread.sleep(25);
 		}
-		// Add a sleep here to make it "press a little harder
-		Thread.sleep(5);
-		logger.debug("ta_output.setDuty(ArmVerticalMotor, 0)");
-		synchronized(ta_output) {
-		    ta_output.setDuty(ArmVerticalMotor, 0);
-		}
+
+		logger.error("ta_output.setDuty(ArmVerticalMotor, 0)");
+		ta_output.setDuty(ArmVerticalMotor, 0);
 	    }
 	    
 	    // Move Arm rotation motor CCW back to home
-	    logger.debug("Doing Move Arm rotation motor CCW back to home");
 	    if ( ta_input.getUni(ArmRotationMotor) != InputPressed ) {
-		logger.debug("ta_output.setDuty(ArmRotationMotor, ArmRotationCW)");
-		synchronized(ta_output) {
-		    ta_output.setDuty(ArmRotationMotor, ArmRotationCW);
-		    ta_output.setDistance(ArmRotationMotor, 0);
-		}
-		while ( ta_input.getUni(ArmRotationMotor) != InputPressed ) {
-		    Thread.sleep(5);
-		}
-		// Add a sleep here to make it "press a little harder
-		Thread.sleep(5);
+		logger.error("ta_output.setDuty(ArmRotationMotor, ArmRotationCW)");
+		ta_output.setDistance(ArmRotationMotor, 16383);
+		ta_output.setDuty(ArmRotationMotor, ArmRotationCW);
 
-		logger.debug("ta_output.setDuty(ArmRotationMotor, 0)");
-		synchronized(ta_output) {
-		    ta_output.setDuty(ArmRotationMotor, 0);
+		while ( ta_input.getUni(ArmRotationMotor) != InputPressed ) {
+		    Thread.sleep(25);
 		}
+
+		logger.error("ta_output.setDuty(ArmRotationMotor, 0)");
+		ta_output.setDuty(ArmRotationMotor, 0);
 	    }
 	    	    
 	    // Move gripper motor back to open
-	    logger.debug("Doing Move gripper motor back to open");
 	    if ( ta_input.getUni(GripperMotor) != InputPressed ) {
-		logger.debug("ta_output.setDuty(GripperMotor, GripperMotorOpen)");
-		synchronized(ta_output) {
-		    ta_output.setDuty(GripperMotor, GripperMotorOpen);
-		    ta_output.setDistance(GripperMotor, 0);
-		}
+		logger.error("ta_output.setDuty(GripperMotor, GripperMotorOpen)");
+		ta_output.setDistance(GripperMotor, 16383);
+		ta_output.setDuty(GripperMotor, GripperMotorOpen);
+
 		while ( ta_input.getUni(GripperMotor) != InputPressed ) {
-		    Thread.sleep(5);
+		    Thread.sleep(25);
 		}
-		// Add a sleep here to make it "press a little harder
-		Thread.sleep(5);
-		logger.debug("ta_output.setDuty(GripperMotor, 0)");
-		synchronized(ta_output) {
-		    ta_output.setDuty(GripperMotor, 0);
-		}
+		logger.error("ta_output.setDuty(GripperMotor, 0)");
+		ta_output.setDuty(GripperMotor, 0);
 	    }
 	}
 	catch (InterruptedException interrupt) {
@@ -263,7 +246,7 @@ public class AutomationController {
 	    throw(interrupt);
 	}
 	
-	logger.debug("Leaving resetProcedure() after normal finish");
+	logger.error("Leaving resetProcedure() after normal finish");
     }
 
     private void moveMotorAsynchronous(int motor, int direction, int distance) {
@@ -275,13 +258,28 @@ public class AutomationController {
     
     private void moveMotorSynchronous(int motor, int direction, int distance) throws InterruptedException {
 	try {
-	    logger.debug("Calling moveMotorSynchronous(motor="+motor+", direction="+direction+", distance="+distance+") counter="+ta_input.getCounter(motor));
+	    //logger.debug("Calling moveMotorSynchronous(motor="+motor+", direction="+direction+", distance="+distance+") counter="+ta_input.getCounter(motor));
+	    logger.error("Calling moveMotorSynchronous(motor="+motor+", direction="+direction+", distance="+distance+") counter="+ta_input.getCounter(motor));
 
-	    synchronized(ta_output) {
-		ta_output.resetCounter(motor);
-	    }
+	    int priorToReset=ta_input.getCounter(motor);
 
-	    Thread.sleep(100); // Takes a small amount of time for reset to take effect
+	    // Reset counter if necessary
+	    if (priorToReset !=0) {
+	    	int numMsForCounterReset=0;
+		
+	        ta_output.resetCounter(motor);
+		
+	        //Test for "value has gone down" rather than actual zero, since counter may move slightly after the reset
+	    	while(ta_input.getCounter(motor) >= priorToReset) {
+		    Thread.sleep(10);
+		    numMsForCounterReset += 10;
+		    if (numMsForCounterReset > 1000) {		    
+			break;
+		    }
+	    	}
+	    	logger.error("Counter should be reset by now. numMsForCounterReset is " + numMsForCounterReset + "  ta_input.getCounter(" + motor + ") is " + ta_input.getCounter(motor));
+            }
+	    
 	    
 	    moveMotorAsynchronous(motor, direction, distance);
 	    int currentCounter=0, previousCounter=0;
@@ -289,24 +287,28 @@ public class AutomationController {
 	    while (currentCounter < distance) {
 		previousCounter=currentCounter;
 
-		Thread.sleep(150);
+		// Gripper motor counts much slower
+		if (motor == GripperMotor) {
+		    Thread.sleep(150);
+		}
+		else {
+		    Thread.sleep(50);
+		}
 		
 		currentCounter=ta_input.getCounter(motor);
+
 		if (currentCounter == previousCounter) {
 		    stuckCount++;
 		}
 
-		//Gripper motor counter is much slower, so different parameters
-		if (motor == GripperMotor) {
-		    if (stuckCount > 2) {
-			break;
-		    }
+		if (((motor == GripperMotor) && stuckCount > 5) ||
+		    stuckCount > 10) {
+		    logger.error("Exiting moveMotorSynchronous. motor=" + motor + " stuckCount=" + stuckCount + " currentCounter=" + currentCounter);
+		    break;
 		}
-		else{
-		    if (stuckCount > 20) {
-			break;
-		    }
-		}
+	    }
+	    if (currentCounter >= distance) {
+		logger.error("Exiting moveMotorSynchronous. motor=" + motor + " currentCounter=" + currentCounter + " distance="+distance);
 	    }
 	}
 	catch (InterruptedException interrupt) {
@@ -323,19 +325,19 @@ public class AutomationController {
 		resetProcedure();
 		
 		moveMotorSynchronous(ArmVerticalMotor, ArmVerticalDown, 1240);
-		moveMotorSynchronous(GripperMotor, GripperMotorClose, 13);
+		moveMotorSynchronous(GripperMotor, GripperMotorClose, 10);
 		moveMotorSynchronous(ArmVerticalMotor, ArmVerticalUp, 700);
 		moveMotorSynchronous(ArmRotationMotor, ArmRotationCCW, 800);
 		moveMotorSynchronous(ArmVerticalMotor, ArmVerticalDown, 700);
-		moveMotorSynchronous(GripperMotor, GripperMotorOpen, 13);
-		moveMotorSynchronous(ArmVerticalMotor, ArmVerticalUp, 1240);
+		moveMotorSynchronous(GripperMotor, GripperMotorOpen, 9);
+		moveMotorSynchronous(ArmVerticalMotor, ArmVerticalUp, 1230);
 		
-		moveMotorSynchronous(ArmVerticalMotor, ArmVerticalDown, 1240);
-		moveMotorSynchronous(GripperMotor, GripperMotorClose, 13);
+		moveMotorSynchronous(ArmVerticalMotor, ArmVerticalDown, 1230);
+		moveMotorSynchronous(GripperMotor, GripperMotorClose, 9);
 		moveMotorSynchronous(ArmVerticalMotor, ArmVerticalUp, 700);
-		moveMotorSynchronous(ArmRotationMotor, ArmRotationCW, 800);
+		moveMotorSynchronous(ArmRotationMotor, ArmRotationCW, 797);
 		moveMotorSynchronous(ArmVerticalMotor, ArmVerticalDown, 700);
-		moveMotorSynchronous(GripperMotor, GripperMotorOpen, 13);
+		moveMotorSynchronous(GripperMotor, GripperMotorOpen, 10);
 	    }
 	    catch (InterruptedException interrupt) {
 		logger.error("Leaving pickBoxUpAndMoveLeftProcedure() because it was interrupted");
