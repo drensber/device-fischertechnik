@@ -297,12 +297,15 @@ public class AutomationController {
 		
 		currentCounter=ta_input.getCounter(motor);
 
+		//Has to be stuck 5x in sequence 
 		if (currentCounter == previousCounter) {
 		    stuckCount++;
 		}
-
-		if (((motor == GripperMotor) && stuckCount > 5) ||
-		    stuckCount > 10) {
+		else {
+		    stuckCount=0;
+		}
+		
+		if (stuckCount > 5) {
 		    logger.error("Exiting moveMotorSynchronous. motor=" + motor + " stuckCount=" + stuckCount + " currentCounter=" + currentCounter);
 		    break;
 		}
@@ -325,19 +328,19 @@ public class AutomationController {
 		resetProcedure();
 		
 		moveMotorSynchronous(ArmVerticalMotor, ArmVerticalDown, 1240);
-		moveMotorSynchronous(GripperMotor, GripperMotorClose, 10);
+		moveMotorSynchronous(GripperMotor, GripperMotorClose, 11);
 		moveMotorSynchronous(ArmVerticalMotor, ArmVerticalUp, 700);
 		moveMotorSynchronous(ArmRotationMotor, ArmRotationCCW, 800);
 		moveMotorSynchronous(ArmVerticalMotor, ArmVerticalDown, 700);
-		moveMotorSynchronous(GripperMotor, GripperMotorOpen, 9);
+		moveMotorSynchronous(GripperMotor, GripperMotorOpen, 11);
 		moveMotorSynchronous(ArmVerticalMotor, ArmVerticalUp, 1230);
 		
 		moveMotorSynchronous(ArmVerticalMotor, ArmVerticalDown, 1230);
-		moveMotorSynchronous(GripperMotor, GripperMotorClose, 9);
+		moveMotorSynchronous(GripperMotor, GripperMotorClose, 11);
 		moveMotorSynchronous(ArmVerticalMotor, ArmVerticalUp, 700);
 		moveMotorSynchronous(ArmRotationMotor, ArmRotationCW, 797);
 		moveMotorSynchronous(ArmVerticalMotor, ArmVerticalDown, 700);
-		moveMotorSynchronous(GripperMotor, GripperMotorOpen, 10);
+		moveMotorSynchronous(GripperMotor, GripperMotorOpen, 11);
 	    }
 	    catch (InterruptedException interrupt) {
 		logger.error("Leaving pickBoxUpAndMoveLeftProcedure() because it was interrupted");
