@@ -89,7 +89,7 @@ public class DeviceDiscovery {
 	}
 
 	private Device deviceExists(Map<String, String> device) {
-		return devices.getMetaDevices().stream().filter(d -> device.get("address").equals(d.getAddressable().getPath())).findFirst().orElse(null);
+		return devices.getMetaDevices().stream().filter(d -> device.get("address").equals(d.getService().getAddressable().getPath())).findFirst().orElse(null);
 	}
 
 	private Device createDevice(Map<String, String> device, ProvisionWatcher watcher) {
@@ -98,20 +98,12 @@ public class DeviceDiscovery {
 		newDevice.setService(watcher.getService());
 		String name = device.get("name") + " " + device.get("address");
 		newDevice.setName(name);
-		Addressable addressable = createAddressable(device, name, watcher.getService().getAddressable());
-		newDevice.setAddressable(addressable);
 		newDevice.setLabels(watcher.getService().getLabels());
 		newDevice.setAdminState(AdminState.UNLOCKED);
 		newDevice.setOperatingState(OperatingState.ENABLED);
 		return newDevice;
 	}
 	
-	private Addressable createAddressable(Map<String, String> device, String name, Addressable service) {
-		Addressable addressable = new Addressable(
-				name, protocol, device.get("interface"),
-				device.get("address"), service.getPort());		
-		return addressable;
-	}
 	
 	public void provision(ScanList availableList) {
 		if(availableList != null && availableList.getScan().size() > 0){

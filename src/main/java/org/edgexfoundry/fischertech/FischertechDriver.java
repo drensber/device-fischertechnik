@@ -125,8 +125,8 @@ public class FischertechDriver {
 	    logger.debug("Calling process(ResourceOperation operation=\""+operation+"\", FischertechDevice device=<TLDR>, FischertechObject object=\""+object+"\", String value=\""+value+"\", String transactionId=\""+transactionId+"\", String opId=\""+opId+"\")");
 		String result = "";
 		
-		result = processCommand(operation.getOperation(), device.getAddressable(), object.getAttributes(), value);
-		logger.debug("Called: processCommand(" + operation.getOperation() + ", " + device.getAddressable() + ", " + object.getAttributes() + ", " + value + ")");
+		result = processCommand(operation.getOperation(), object.getAttributes(), value);
+		logger.debug("Called: processCommand(" + operation.getOperation() + ", " + object.getAttributes() + ", " + value + ")");
 		logger.debug("  returned: " + result);
 		if (this.device == null) {
 			this.device = device;
@@ -138,16 +138,15 @@ public class FischertechDriver {
 	}
 
 	// Modify this function as needed to pass necessary metadata from the device and its profile to the driver interface
-	public String processCommand(String operation, Addressable addressable, FischertechAttribute attributes, String value) {
+	public String processCommand(String operation, FischertechAttribute attributes, String value) {
 		if (!connected) {
 			initialize();
-			if (!connected)
-				throw new NotFoundException("Fischertechnik device", addressable.getName());
+			if (!connected) {
+			    throw new NotFoundException("Device couldn't connect: ", "Fischertechnik");
+			}
 		}
 			
-		String address = addressable.getPath();
-		String intface = addressable.getAddress();
-		logger.debug("ProcessCommand: " + operation + ", interface: " + intface + ", address: " + address + ", attributes: " + attributes.getInterfaceName() + ", value: " + value );
+		logger.debug("ProcessCommand: " + operation + ", attributes: " + attributes.getInterfaceName() + ", value: " + value );
 		String result = "";
 
 		logger.debug("ta_input = " + ta_input);
@@ -228,7 +227,7 @@ public class FischertechDriver {
 		logger.debug("ta_input = " + ta_input);
 	}
 	
-	public void disconnectDevice(Addressable address) {
+	public void disconnectDevice() {
 		cleanup();
 	}
 	
@@ -285,7 +284,7 @@ public class FischertechDriver {
 				
 				if (order.size() == 0) {
 					logger.error("Error initializing device " + client.getDescriptivePortName());
-					disconnectDevice(null);
+					disconnectDevice();
 					return;
 				}
 				
@@ -336,7 +335,7 @@ public class FischertechDriver {
 			} catch (Exception e) {
 			    logger.error("FischertechDriver.connection() caught exception e=" + e);
 			    e.printStackTrace();
-				disconnectDevice(null);
+				disconnectDevice();
 			}
 
 			if (safety) {
@@ -424,7 +423,7 @@ public class FischertechDriver {
 		if (readbytes <= 0 || output.length() < readbytes*2) {		        
 			logger.error("Could not read from device " + client.getDescriptivePortName());
 			logger.error("readbytes = " + readbytes + ",  output.length()="+output.length());
-			disconnectDevice(null);
+			disconnectDevice();
 			return tid;
 		}
 		
@@ -483,7 +482,7 @@ public class FischertechDriver {
 				if (String.format("%04X", ta_input.uni[0]).equals("983A")) {
 					tid = configure(); // attempt to recover connection
 					if (tid.size() == 0) {
-						disconnectDevice(null);
+						disconnectDevice();
 					}
 				}
 			}

@@ -34,14 +34,15 @@ public class Initializer extends BaseService {
 	@Autowired
 	DeviceStore devices;
 	
-	@Autowired
-	Scheduler schedules;
+    //@Autowired
+	// Disabling the scheduler altogether for Edinburgh compatibility
+	//Scheduler schedules;
 
 	@Override
 	public boolean initialize(String deviceServiceId) {
 		// load the devices in cache.
 		devices.initialize(deviceServiceId);
-		schedules.initialize(getServiceName());
+		//schedules.initialize(getServiceName());
 		logger.info("Initialized device service successfully");
 		return true;
 	}

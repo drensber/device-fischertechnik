@@ -30,7 +30,7 @@ public class FischertechDeviceProfile extends DeviceProfile {
 	private List<FischertechObject> FischertechResources = new ArrayList<FischertechObject>();
 
 	public FischertechDeviceProfile(DeviceProfile profile) {
-		this.setCommands(profile.getCommands());
+		this.setCoreCommands(profile.getCoreCommands());
 		this.setCreated(profile.getCreated());
 		this.setDescription(profile.getDescription());
 		this.setId(profile.getId());
@@ -39,7 +39,7 @@ public class FischertechDeviceProfile extends DeviceProfile {
 		this.setModel(profile.getModel());
 		this.setModified(profile.getModified());
 		this.setName(profile.getName());
-		this.setResources(profile.getResources());
+		this.setDeviceCommands(profile.getDeviceCommands());
 		this.setObjects(profile.getObjects());
 		this.setDeviceResources(profile.getDeviceResources());
 	}

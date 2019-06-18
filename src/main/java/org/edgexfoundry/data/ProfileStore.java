@@ -103,19 +103,19 @@ public class ProfileStore {
 		}
 		
 		List<String> usedDescriptors = new ArrayList<String>();
-		for (Command command: device.getProfile().getCommands()) {
+		for (Command command: device.getProfile().getCoreCommands()) {
 			usedDescriptors.addAll(command.associatedValueDescriptors());
 		}
 
-		for (ProfileResource resource: device.getProfile().getResources()) {
+		for (ProfileResource deviceCommand: device.getProfile().getDeviceCommands()) {
 			Map<String, List<ResourceOperation>> operations = new HashMap<String, List<ResourceOperation>>();
-			operations.put("get", resource.getGet());
-			operations.put("set", resource.getSet());
-			deviceOperations.put(resource.getName().toLowerCase(), operations);
-			if(resource.getGet() != null)
-				ops.addAll(resource.getGet());
-			if(resource.getSet() != null)
-				ops.addAll(resource.getSet());
+			operations.put("get", deviceCommand.getGet());
+			operations.put("set", deviceCommand.getSet());
+			deviceOperations.put(deviceCommand.getName().toLowerCase(), operations);
+			if(deviceCommand.getGet() != null)
+				ops.addAll(deviceCommand.getGet());
+			if(deviceCommand.getSet() != null)
+				ops.addAll(deviceCommand.getSet());
 		}
 
 		// put the device's profile objects in the objects map

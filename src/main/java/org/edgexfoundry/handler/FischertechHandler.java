@@ -104,7 +104,7 @@ public class FischertechHandler {
 		FischertechDevice FischertechDevice = new FischertechDevice(device);
 		if (fischertechRemove != null && commandExists(device, fischertechRemove))
 			executeCommand(FischertechDevice, fischertechRemove, fischertechRemoveArgs);
-		driver.disconnectDevice(device.getAddressable());
+		driver.disconnectDevice();
 		logger.info("Disconnected Device: " + device.getName());
 	}
 	
@@ -193,11 +193,7 @@ public class FischertechHandler {
 
 			String objectName = operation.getObject();
 			FischertechObject object = getFischertechObject(objects, objectName, transactionId);
-			
-			//TODO Add property flexibility
-			if (!operation.getProperty().equals("value"))
-				throw new ServiceException(new UnsupportedOperationException("Only property of value is implemented for this service!"));
-			
+						
 			String val = null;
 			
 			if (method.equals("set"))
@@ -270,7 +266,7 @@ public class FischertechHandler {
 		logger.info("Calling parseArguments() arguments="+arguments+" value="+value+" val="+val);
 		// if the written value is on a multiplexed handle, read the current value and apply the mask first
 		if (!value.mask().equals(BigInteger.ZERO)) {
-			String result = driver.processCommand("get", device.getAddressable(), object.getAttributes(), val);
+			String result = driver.processCommand("get", object.getAttributes(), val);
 			val = transform.maskedValue(value, val, result);
 			if (operation.getSecondary() != null) {
 				for (String secondary: operation.getSecondary()) {

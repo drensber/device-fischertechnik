@@ -40,6 +40,7 @@ import org.edgexfoundry.support.logging.client.EdgeXLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
+import org.edgexfoundry.GenericRestClient;
 
 @Repository
 public class DeviceStore {
@@ -74,7 +75,7 @@ public class DeviceStore {
 		if (devices.containsKey(device.getName())) {
 			devices.remove(device.getName());			
 			Fischertech.disconnectDevice(device);
-			deviceClient.updateOpState(device.getId(), OperatingState.DISABLED.name());
+			GenericRestClient.updateOpState(device.getId(), OperatingState.DISABLED);
 			profiles.removeDevice(device);
 		}
 		return true;
@@ -111,25 +112,15 @@ public class DeviceStore {
 
 	private Device addDeviceToMetaData(Device device) {
 		//Create a new addressable Object with the devicename + last 6 digits of MAC address.Assume this to be unique
-		
-		Addressable addressable = null; 
-		try {
-			addressableClient.addressableForName(device.getAddressable().getName());
-		} catch (javax.ws.rs.NotFoundException e) {
-			addressable = device.getAddressable();
-			addressable.setOrigin(System.currentTimeMillis());
-			logger.info("Creating new Addressable Object with name: " + addressable.getName() + ", Address:" + addressable);
-			String addressableId = addressableClient.add(addressable);
-			addressable.setId(addressableId);
-			device.setAddressable(addressable);
-		}
-
+	    
 		Device d = null;
 		try {
 			d = deviceClient.deviceForName(device.getName());
 			device.setId(d.getId());
-			if (!device.getOperatingState().equals(d.getOperatingState()))
-				deviceClient.updateOpState(device.getId(), device.getOperatingState().name());
+			if (!device.getOperatingState().equals(d.getOperatingState())) {
+			    GenericRestClient.updateOpState(device.getId(), device.getOperatingState());
+			    
+			}
 		} catch (javax.ws.rs.NotFoundException e) {
 			logger.info("Adding Device to Metadata:" + device.getName());
 			try {
@@ -156,8 +147,7 @@ public class DeviceStore {
 	}
 	
 	private boolean compare(Device a, Device b) {
-		if (a.getAddressable().equals(b.getAddressable()) 
-				&& a.getAdminState().equals(b.getAdminState())
+		if (a.getAdminState().equals(b.getAdminState())
 				&& a.getDescription().equals(b.getDescription())
 				&& a.getId().equals(b.getId())
 				&& a.getLabels().equals(b.getLabels())
@@ -187,7 +177,7 @@ public class DeviceStore {
 		watchers.initialize(id);
 		Fischertech.initialize();
 		for (Device device : metaDevices) {
-			deviceClient.updateOpState(device.getId(),OperatingState.DISABLED.name());
+			GenericRestClient.updateOpState(device.getId(), OperatingState.DISABLED);
 			add(device);
 		}
 		logger.info("Device service has " + devices.size() + " devices.");
@@ -251,11 +241,11 @@ public class DeviceStore {
 	}
 
 	public void setDeviceOpState(String deviceName, OperatingState state){
-		deviceClient.updateOpStateByName(deviceName, state.name());
+	    GenericRestClient.updateOpStateByName(deviceName, state);
 	}
 
 	public void setDeviceByIdOpState(String deviceId, OperatingState state){
-		deviceClient.updateOpState(deviceId, state.name());
+	    GenericRestClient.updateOpState(deviceId, state);
 	}
 
 	public boolean updateProfile(String profileId) {

@@ -31,7 +31,6 @@ public class FischertechDevice extends Device {
 	
 	public FischertechDevice(Device device) {
 		this.setAdminState(device.getAdminState());
-		this.setAddressable(device.getAddressable());
 		this.setProfile(device.getProfile());
 		this.setFischertechProfile(new FischertechDeviceProfile(device.getProfile()));
 		this.setCreated(device.getCreated());
