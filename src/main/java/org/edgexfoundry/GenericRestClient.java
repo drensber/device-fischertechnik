@@ -87,7 +87,7 @@ public class GenericRestClient {
 	
 	message.append("]}");
 
-	logger.error("Sending message to core-data with body \"" + message.toString() + "\"");
+	logger.debug("Sending message to core-data with body \"" + message.toString() + "\"");
 	try {
 	    url = new URL(baseURL + coreDataPort + "/api/v1/event");
 	    rv = makeGenericPostRequest(url, message.toString());
