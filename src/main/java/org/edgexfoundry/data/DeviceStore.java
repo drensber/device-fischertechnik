@@ -39,10 +39,10 @@ import org.edgexfoundry.support.logging.client.EdgeXLogger;
 import org.edgexfoundry.support.logging.client.EdgeXLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 import org.edgexfoundry.GenericRestClient;
 
-@Repository
+@Component
 public class DeviceStore {
 	private final static EdgeXLogger logger = EdgeXLoggerFactory.getEdgeXLogger(DeviceStore.class);
 

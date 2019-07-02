@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.edgexfoundry.controller.DeviceClient;
-import org.edgexfoundry.controller.EventClient;
+import org.edgexfoundry.GenericRestClient;
 import org.edgexfoundry.data.DeviceStore;
 import org.edgexfoundry.domain.FischertechObject;
 import org.edgexfoundry.domain.ResponseObject;
@@ -53,8 +53,6 @@ public class CoreDataMessageHandler {
 	@Autowired
 	private DeviceClient deviceClient;
 	
-	@Autowired
-	private EventClient eventClient;
 	
 	@Autowired
 	private DeviceStore devices;
@@ -76,22 +74,14 @@ public class CoreDataMessageHandler {
 	private boolean sendEvent(Event event, int attempt) {
 		if (retries == 0 || attempt < retries) {
 			if (event != null) {
-				try {
-					eventClient.add(event);
-					return true;
-				} catch (Exception e) { // something happened trying to send to
-										// core data - likely that the service
-										// is down.
-					logger.debug("Problem sending event for " + event.getDevice()
-							+ " to core data.  Retrying (attempt " + (attempt + 1) + ")...");
-					try {
-						Thread.sleep(delay);
-					} catch (InterruptedException interrupt) {
-						logger.debug("Event send delay interrupted");
-						interrupt.printStackTrace();
-					}
-					return sendEvent(event, ++attempt);
-				}
+			    if (GenericRestClient.addEvent(event)) {
+				return true;
+			    }
+			    else {
+				logger.error("Problem sending event for " + event.getDevice() +
+					     "to core data.  GenericRestClient.addEvent returned false. Retrying (attempt " + (attempt + 1) + ")...");
+				return sendEvent(event, ++attempt);
+			    }
 			}
 		}
 		return false;

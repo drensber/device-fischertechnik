@@ -37,11 +37,11 @@ import org.edgexfoundry.fischertech.ObjectTransform;
 import org.edgexfoundry.handler.CoreDataMessageHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 import com.google.gson.JsonObject;
 
-@Repository
+@Component
 public class ObjectStore {
 
 	@Value("${data.transform:true}")

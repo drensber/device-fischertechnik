@@ -40,9 +40,9 @@ import org.edgexfoundry.domain.meta.Units;
 import org.edgexfoundry.support.logging.client.EdgeXLogger;
 import org.edgexfoundry.support.logging.client.EdgeXLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-@Repository
+@Component
 public class ProfileStore {
 	private final static EdgeXLogger logger = EdgeXLoggerFactory.getEdgeXLogger(ProfileStore.class);
 
@@ -177,9 +177,20 @@ public class ProfileStore {
 	private ValueDescriptor createDescriptor(String name, DeviceObject object, Device device) {
 		PropertyValue value = object.getProperties().getValue();
 		Units units = object.getProperties().getUnits();
-		ValueDescriptor descriptor = new ValueDescriptor(name,value.getMinimum(),
-				value.getMaximum(),IoTType.valueOf(value.getType().substring(0,1)),units.getDefaultValue(),
-				value.getDefaultValue(), "%s", null, object.getDescription());
+		String typeLetter = (value.getType().substring(0,1).equals("U") ?
+				     "I" :
+				     value.getType().substring(0,1));
+
+		ValueDescriptor descriptor =
+		    new ValueDescriptor(name,
+					value.getMinimum(),
+					value.getMaximum(),
+					IoTType.valueOf(typeLetter),
+					units.getDefaultValue(),
+					value.getDefaultValue(),
+					"%s",
+					null,
+					object.getDescription());
 		try {
 			descriptor.setId(valueDescriptorClient.add(descriptor));
 		} catch (Exception e) {

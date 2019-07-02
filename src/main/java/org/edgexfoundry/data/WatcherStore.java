@@ -33,9 +33,9 @@ import org.edgexfoundry.domain.meta.ProvisionWatcher;
 import org.edgexfoundry.support.logging.client.EdgeXLogger;
 import org.edgexfoundry.support.logging.client.EdgeXLoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-@Repository
+@Component
 public class WatcherStore {
 
 	private final static EdgeXLogger logger = EdgeXLoggerFactory.getEdgeXLogger(WatcherStore.class);
