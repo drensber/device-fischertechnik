@@ -43,7 +43,10 @@ public class FishX1Packet {
 	private String messagePayload = "";
 	private TA_OUTPUT output;
 	private TA_CONFIG config;
-	
+
+        private byte[] byteArray75 = new byte[75];
+        private byte[] byteArray79 = new byte[79];
+
 	public FishX1Packet() {
 		this(2);
 	}
@@ -149,8 +152,20 @@ public class FishX1Packet {
 		return hexToBytes(this.toString());
 	}
 	
-	public byte[] hexToBytes(String s) {
-	    byte[] byteArray = new byte[s.length() / 2];
+	private byte[] hexToBytes(String s) {
+	    byte[] byteArray;
+
+	    // To avoid dynamic allocations
+	    if ((s.length() / 2) == 75) {
+		byteArray = byteArray75;
+	    }
+	    else if ((s.length() / 2) == 79) {
+		byteArray = byteArray79;
+	    }
+	    else {
+		byteArray = new byte[s.length() / 2];
+	    }
+	    
 	    for (int i = 0; i < byteArray.length; i += 1) {
 	    	byteArray[i] = (byte) (Integer.parseInt(s.substring(i*2, (i+1)*2), 16));
 	    }

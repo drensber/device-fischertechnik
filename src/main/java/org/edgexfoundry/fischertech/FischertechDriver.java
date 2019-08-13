@@ -116,7 +116,12 @@ public class FischertechDriver {
 		
 		return scan;
 	}
-	
+
+        byte[] buffer = new byte[200];
+        int readbytes = 0;
+
+        int[] tid_array = new int[2];
+
 	// operation is get or set
 	// Device to be written to
 	// Fischertech Object to be written to
@@ -264,6 +269,8 @@ public class FischertechDriver {
 					return;
 				}
 				
+				System.gc();
+								
 				logger.debug("Device found: " + client.getSystemPortName());
 				client.setComPortParameters(serialBaudRate, serialDataBits, serialStopBits, serialParity);
 				client.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 1000, 0);
@@ -279,10 +286,10 @@ public class FischertechDriver {
 				logger.debug("ta_input = \"" + ta_input + "\"");
 
 				connected = true;
-								
-				final List<Integer> order = configure();
 				
-				if (order.size() == 0) {
+				final int[] order = configure();
+
+				if (order == null) {
 					logger.error("Error initializing device " + client.getDescriptivePortName());
 					disconnectDevice();
 					return;
@@ -309,24 +316,24 @@ public class FischertechDriver {
 		}
 	}
 	
-	private List<Integer> configure() {
+        private int[] configure() {
 		FishX1Packet packet = new FishX1Packet(5);
-		List<Integer> order = writeToDevice(packet);
+		int[] order = writeToDevice(packet);
 		return order;
 	}
 
-	protected void connection(List<Integer> order) {
-		FishX1Packet packet = new FishX1Packet(2, order.get(0), order.get(1));
+        protected void connection(int[] order) {
+	        FishX1Packet packet = new FishX1Packet(2, order[0], order[1]);
 		ta_output = packet.getOutput();
 		AutomationController.getInstance().setTaOutput(ta_output);		
+		
 		while (connected) {
-			packet.update(order.get(0), order.get(1));
+		        packet.update(order[0], order[1]);
 
 			// 50 packets/second should be enough granularity
 			try {
 			    Thread.sleep(20);
 			}catch(InterruptedException e) {
-			    //IGNORED
 			    e.printStackTrace();
 			}
 
@@ -361,12 +368,9 @@ public class FischertechDriver {
 		}
 	}
 
-	private List<Integer> writeToDevice(FishX1Packet packet) {
-		List<Integer> tid = new ArrayList<Integer>();
+        private int[] writeToDevice(FishX1Packet packet) {
+	        int[] tid=tid_array;
 		
-		byte[] buffer = new byte[200];
-		
-		Integer readbytes = 0;
 		byte[] frame = packet.getFrame();
 
 		if (frame[16] == 5) {
@@ -424,7 +428,7 @@ public class FischertechDriver {
 			logger.error("Could not read from device " + client.getDescriptivePortName());
 			logger.error("readbytes = " + readbytes + ",  output.length()="+output.length());
 			disconnectDevice();
-			return tid;
+			return null;
 		}
 		
 		output = output.substring(0, readbytes*2);
@@ -433,9 +437,9 @@ public class FischertechDriver {
 		    logger.debug("output=\"" + output + "\"");
 		}
 		
-		tid.add(Integer.parseInt(output.substring(24,26), 16) + Integer.parseInt(output.substring(26,28), 16) * 256 + 1);
-		tid.add(Integer.parseInt(output.substring(28,30), 16) + Integer.parseInt(output.substring(30,32), 16) * 256);
-		
+		tid[0] = Integer.parseInt(output.substring(24,26), 16) + Integer.parseInt(output.substring(26,28), 16) * 256 + 1;
+                tid[1] = Integer.parseInt(output.substring(28,30), 16) + Integer.parseInt(output.substring(30,32), 16) * 256;
+
 		if (output.substring(16*2,16*2+2).equals("66")) {		    
 			String target = output.substring(7*4*2, output.length()-6);
 			TA_INPUT old = ta_input;
@@ -481,7 +485,7 @@ public class FischertechDriver {
 
 				if (String.format("%04X", ta_input.uni[0]).equals("983A")) {
 					tid = configure(); // attempt to recover connection
-					if (tid.size() == 0) {
+					if (tid != null) {
 						disconnectDevice();
 					}
 				}
